@@ -4,13 +4,19 @@ import com.spring.security.jwt.domain.Role;
 import com.spring.security.jwt.domain.User;
 import com.spring.security.jwt.repository.RoleRepository;
 import com.spring.security.jwt.repository.UserRepository;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service @RequiredArgsConstructor @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
@@ -44,5 +50,20 @@ public class UserServiceImpl implements UserService {
   @Override
   public List<User> getUsers() {
     return userRepository.findAll();
+  }
+
+  @Override
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+    User user = userRepository.findByUsername(username);
+
+    if (user == null) {
+      throw new UsernameNotFoundException("Usuário não encontrado");
+    }
+
+    Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+    user.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+
+    return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
   }
 }
