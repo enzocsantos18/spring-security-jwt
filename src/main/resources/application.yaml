@@ -14,5 +14,8 @@ spring:
     properties:
       hibernate:
         default_schema: sch_user
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
 server:
   port: 8080 #set your port
